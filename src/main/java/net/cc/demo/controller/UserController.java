@@ -1,6 +1,10 @@
 package net.cc.demo.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.cc.demo.dao.UserMapper;
 import net.cc.demo.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +53,7 @@ public class UserController {
 
     /**
      * 功能描述:
-     * 基础查询-（通过主键查询数据表）可传入主键Id列表
+     * 基础查询-（通过主键查询数据表）可传入【主键Id列表】
      * SQL: where id in (?,?)
      *
      * @param
@@ -118,6 +122,7 @@ public class UserController {
      * 功能描述:
      * 构造器条件查询 (like 使用 , 区间使用 , NotNull使用)
      * 程序用例：where email like %wt% and age between 20 and 40 and name is not null
+     * 注： between ( <= && >= )
      *
      * @param
      * @return: void
@@ -290,5 +295,149 @@ public class UserController {
 
         List<User> list = userMapper.selectList(queryWrapper);
         list.forEach(System.out::println);
+    }
+
+    /**
+     * 功能描述:
+     * 构造器条件查询  + 指定返回 Select 列
+     *
+     * @param
+     * @return: void
+     * @exception:
+     * @author: zhonghua.zhi
+     * @date: 2020/1/11 11:35 下午
+     */
+    @GetMapping("/wrapperQuerySupper1")
+    public void wrapperQuerySupper1() {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.select("id", "name", "age").lt("age", 40);
+
+        List<User> list = userMapper.selectList(queryWrapper);
+        list.forEach(System.out::println);
+    }
+
+    /**
+     * 功能描述:
+     * 构造器条件查询  + 指定返回非显示列 (与 wrapperQuerySupper1函数 相反)
+     *
+     * @param
+     * @return: void
+     * @exception:
+     * @author: zhonghua.zhi
+     * @date: 2020/1/11 11:45 下午
+     */
+    @GetMapping("wrapperQuerySupper2")
+    public void wrapperQuerySupper2() {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.select(User.class, tf -> !tf.getColumn().equals("age") && !tf.getColumn().equals("email"));
+
+        List<User> list = userMapper.selectList(queryWrapper);
+        list.forEach(System.out::println);
+    }
+
+    /**
+     * 功能描述:
+     * 构造器条件查询 （Lambda）
+     *
+     * @param
+     * @return: void
+     * @exception: v
+     * @author: zhonghua.zhi
+     * @date: 2020/1/12 5:07 下午
+     */
+    @GetMapping("/wrapperQuerylambda")
+    public void wrapperQuerylambda() {
+
+        LambdaQueryWrapper<User> lambdaQueryWrapper = Wrappers.<User>lambdaQuery();
+        lambdaQueryWrapper.likeRight(User::getEmail, "wt")
+                .and(lqw -> lqw.lt(User::getAge, 40).isNotNull(User::getEmail));
+
+        List<User> list = userMapper.selectList(lambdaQueryWrapper);
+        list.forEach(System.out::println);
+    }
+
+    /**
+     * 功能描述:
+     * 求总记录数
+     *
+     * @param
+     * @return: void
+     * @exception:
+     * @author: zhonghua.zhi
+     * @date: 2020/1/12 5:10 下午
+     */
+    @GetMapping("/wrapperQueryCount")
+    public void wrapperQueryCount() {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+
+        Integer counts = userMapper.selectCount(queryWrapper);
+        System.out.println("counts == " + counts);
+    }
+
+    /**
+     * 功能描述:
+     * 返回 Map
+     *
+     * @param
+     * @return: void
+     * @exception:
+     * @author: zhonghua.zhi
+     * @date: 2020/1/12 5:14 下午
+     */
+    @GetMapping("/wrapperQueryMap")
+    public void wrapperQueryMap() {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.select("id", "name");
+
+        List<Map<String, Object>> list = userMapper.selectMaps(queryWrapper);
+        list.forEach(System.out::println);
+    }
+
+    /**
+     * 功能描述:
+     * 自定义SQL
+     *
+     * @param
+     * @return: void
+     * @exception:
+     * @author: zhonghua.zhi
+     * @date: 2020/1/12 5:44 下午
+     */
+    @GetMapping("/custom1")
+    public void custom1() {
+
+        User user = userMapper.selectCustom();
+        System.out.println(user);
+    }
+
+    /**
+     * 功能描述:
+     * 分页查询
+     *
+     * @param
+     * @return: void
+     * @exception:
+     * @author: zhonghua.zhi
+     * @date: 2020/1/12 8:35 下午
+     */
+    @GetMapping("/selectPage")
+    public void selectPage() {
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>();
+        queryWrapper.ge("age", 1);
+
+        /** 当前第一页 每页显示两条 **/
+        Page<User> page = new Page<User>(1, 2);
+
+        IPage<User> iPage = userMapper.selectPage(page, queryWrapper);
+        System.out.println("总页数： " + iPage.getPages());
+        System.out.println("总记录数：" + iPage.getTotal());
+
+        List<User> users = iPage.getRecords();
+        users.forEach(System.out::println);
     }
 }

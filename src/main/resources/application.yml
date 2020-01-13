@@ -11,3 +11,7 @@ logging:
     net.cc.dao: trace
   pattern:
     console: '[%p]\t[%m]\t%n'
+
+mybatis-plus:
+  mapper-locations:
+    - net/cc/demo/mapper/*

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd" >
+<mapper namespace="net.cc.demo.dao.UserMapper">
+    <select id="selectCustom" resultType="net.cc.demo.entity.User" >
+        <![CDATA[
+            SELECT * FROM USER WHERE ID = '1088250446457389058'
+        ]]>
+    </select>
+</mapper>
